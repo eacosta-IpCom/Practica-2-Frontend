@@ -78,7 +78,7 @@ const addToCart = async (product: Product) => {
 
   return (
     <div className="container">
-      <h1>Practica 2 rama desde eacosta</h1>
+      <h1>Practica 2 rama desde eacosta </h1>
 
 
 {/* SECCIÓN DEL CARRITO */}
