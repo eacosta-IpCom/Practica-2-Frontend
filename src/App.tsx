@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-// Definimos qué tiene un producto según el backend
+// Definimos qué tiene un producto de acuerdo con el backend
 interface Product {
   id: number;
   name: string;
@@ -11,10 +11,10 @@ interface Product {
 }
 
 function App() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]); //Se utiliza para guardar los productos
   const [cart, setCart] = useState<Product[]>([]);
 
-  // 1. Cargar productos desde el Backend de Java
+  // 1. useEffect pide los productos al Backend de Java
   useEffect(() => {
     fetch('http://localhost:8080/api/products')
       .then(res => res.json())
@@ -23,23 +23,32 @@ function App() {
   }, []);
 
   // 2. Lógica para agregar al carrito (en memoria del cliente)
- const addToCart = async (product: Product) => {
-   // Verificamos que el producto tenga un ID real antes de enviar
-   console.log("Agregando producto con ID:", product.id);
+const addToCart = async (product: Product) => {
+  console.log("Agregando producto con ID:", product.id, "Cantidad:", product.quantity);
 
-   const itemParaEnviar = {
-     ...product, // Esto copia id, name, price, etc.
-     quantity: 1
-   };
+  // Enviamos el producto tal cual, con su cantidad actual
+  const itemParaEnviar = {
+    ...product
+  };
 
-   await fetch(`${import.meta.env.VITE_API_URL}/cart/user1/items`, {
-     method: 'POST',
-     headers: { 'Content-Type': 'application/json' },
-     body: JSON.stringify(itemParaEnviar)
-   });
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/cart/user1/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(itemParaEnviar)
+    });
 
-   refreshCart();
- };
+    if (!response.ok) {
+      // Si el backend responde con error 400 (Bad Request), obtenemos el mensaje
+      const errorData = await response.json();
+      alert("Error: " + errorData.message); // Esto mostrará: "La cantidad debe ser mayor o igual a 1"
+    } else {
+      refreshCart();
+    }
+  } catch (error) {
+    console.error("Error al conectar con el servidor:", error);
+  }
+};
 
  const refreshCart = () => {
    fetch('http://localhost:8080/api/cart/user1')
