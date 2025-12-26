@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { useState, useEffect } from 'react';
 
 // Definimos qué tiene un producto de acuerdo con el backend
@@ -20,6 +21,7 @@ function App() {
       .then(res => res.json())
       .then(data => setProducts(data))
       .catch(err => console.error("Error conectando al backend:", err));
+      refreshCart();
   }, []);
 
   //Lógica para agregar al carrito (en memoria del cliente)
@@ -36,7 +38,8 @@ const addToCart = async (product: Product) => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/cart/user1/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(itemParaEnviar)
+      body: JSON.stringify(itemParaEnviar),
+      credential: 'include'
     });
 
     if (!response.ok) {
@@ -94,6 +97,14 @@ const addToCart = async (product: Product) => {
             ))}
           </ul>
         )}
+
+        {/* Sumatoria de precios
+            donde
+            cart es la lista que contiene todos los productos
+            reduce es un metodo que reduce todo el contenido de una lista a un solo valor
+            acc es como la calculadora que empieza que va sumando el precio de los productos en 0
+            item es cada prodcuto individual pero la funcion lo va recorriendo
+            acc + item.price es la sumatoria de cada producto mas lo que se tenia guardado*/}
         <h3>Total: ${cart.reduce((acc, item) => acc + item.price, 0)}</h3>
       </div>
 
@@ -103,8 +114,12 @@ const addToCart = async (product: Product) => {
         {products.map(product => (
           <div key={product.id} className="card">
             <img src={product.imageUrl} alt={product.name} />
-            <h3>{product.name}</h3>
-            <p>{product.description}</p>
+
+            {/* Se sanitiza al renderizar*/}
+            {/* Se sanitiza el nombre y la descripción*/}
+            <h3>{DOMPurify.sanitize(product.name)}</h3>
+            <p>{DOMPurify.sanitize(product.description)}</p>
+
             <p><strong>${product.price}</strong></p>
 
             {/* AGREGAMOS ESTA LÍNEA */}
